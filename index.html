@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Granja Avícola - Control de Huevos</title>
+    <style>
+        :root {
+            --color-primario: #2c3e50;
+            --color-secundario: #34495e;
+            --color-hover: #1abc9c;
+            --texto-blanco: #ecf0f1;
+            --color-error: #e74c3c;
+            --color-exito: #2ecc71;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f6fa;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        /* Barra de navegación */
+        .navbar {
+            background-color: var(--color-primario);
+            color: var(--texto-blanco);
+            padding: 20px 0;
+        }
+        .logo {
+            padding: 0 20px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--texto-blanco);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .menu-item:hover {
+            background-color: var(--color-hover);
+            border-left: 4px solid white;
+        }
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .menu-item.active {
+            background-color: var(--color-hover);
+            border-left: 4px solid white;
+        }
+        /* Contenido principal */
+        .main-content {
+            padding: 30px;
+        }
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+        .panel-title {
+            color: var(--color-primario);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .panel-title i {
+            margin-right: 10px;
+        }
+        .stock-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stock-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        .stock-card:hover {
+            transform: translateY(-5px);
+        }
+        .stock-card h3 {
+            margin-top: 0;
+            color: var(--color-primario);
+        }
+        .stock-card p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0;
+            color: var(--color-secundario);
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            background: var(--color-error);
+            color: white;
+            margin-left: 10px;
+        }
+        .filtros {
+            background: #eef2f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .filtros button {
+            align-self: flex-end;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--color-primario);
+            color: white;
+            font-weight: 500;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        button {
+            background-color: var(--color-hover);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #16a085;
+        }
+        button.secondary {
+            background-color: #95a5a6;
+        }
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        button.danger {
+            background-color: var(--color-error);
+        }
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        input, select {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--color-primario);
+        }
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--color-exito);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+        }
+        .notification.error {
+            background: var(--color-error);
+        }
+        .notification i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .total-venta {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--color-primario);
+            margin: 20px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Barra de navegación -->
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fas fa-egg"></i> GRANJA AVÍCOLA
+            </div>
+            <a href="#" class="menu-item active" data-section="dashboard">
+                <i class="fas fa-home"></i> Inicio
+            </a>
+            <a href="#" class="menu-item" data-section="registro">
+                <i class="fas fa-clipboard-list"></i> Registro Huevos
+            </a>
+            <a href="#" class="menu-item" data-section="ventas">
+                <i class="fas fa-cash-register"></i> Ventas
+            </a>
+            <a href="#" class="menu-item" data-section="historial">
+                <i class="fas fa-history"></i> Historial
+            </a>
+        </nav>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <!-- Panel de Inicio/Dashboard -->
+            <div class="section active" id="dashboard">
+                <div class="panel">
+                    <h2 class="panel-title">
+                        <i class="fas fa-tachometer-alt"></i> Resumen de Inventario
+                    </h2>
+                    
+                    <div class="stock-cards">
+                        <div class="stock-card">
+                            <h3>Huevos Pequeños</h3>
+                            <p id="stock-pequeno">0</p>
+                        </div>
+                        <div class="stock-card">
+                            <h3>Huevos Medianos</h3>
+                            <p id="stock-mediano">0</p>
+                        </div>
+                        <div class="stock-card">
+                            <h3>Huevos Grandes</h3>
+                            <p id="stock-grande">0</p>
+                        </div>
+                        <div class="stock-card">
+                            <h3>Huevos Quebrados</h3>
+                            <p id="stock-quebrados">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="filtros">
+                        <div>
+                            <label for="fecha-inicio-dash">Desde:</label>
+                            <input type="date" id="fecha-inicio-dash">
+                        </div>
+                        <div>
+                            <label for="fecha-fin-dash">Hasta:</label>
+                            <input type="date" id="fecha-fin-dash">
+                        </div>
+                        <button onclick="filtrarDashboard()">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        <button onclick="limpiarFiltrosDash()" class="secondary">
+                            <i class="fas fa-broom"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel de Registro de Huevos -->
+            <div class="section" id="registro">
+                <div class="panel">
+                    <h2 class="panel-title">
+                        <i class="fas fa-clipboard-list"></i> Registro de Producción
+                    </h2>
+                    
+                    <div class="form-group">
+                        <label for="fecha-registro">Fecha:</label>
+                        <input type="date" id="fecha-registro" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tipo-registro">Tipo de Huevo:</label>
+                        <select id="tipo-registro" required>
+                            <option value="pequeno">Pequeño</option>
+                            <option value="mediano">Mediano</option>
+                            <option value="grande">Grande</option>
+                            <option value="quebrado">Quebrado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cantidad-registro">Cantidad:</label>
+                        <input type="number" id="cantidad-registro" min="1" required>
+                    </div>
+                    
+                    <button onclick="registrarProduccion()">
+                        <i class="fas fa-save"></i> Registrar Producción
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Panel de Ventas -->
+            <div class="section" id="ventas">
+                <div class="panel">
+                    <h2 class="panel-title">
+                        <i class="fas fa-cash-register"></i> Registrar Venta
+                    </h2>
+                    
+                    <div class="form-group">
+                        <label for="fecha-venta">Fecha:</label>
+                        <input type="date" id="fecha-venta" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cliente">Cliente:</label>
+                        <input type="text" id="cliente" placeholder="Nombre del cliente" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tipo-venta">Tipo de Huevo:</label>
+                        <select id="tipo-venta" required>
+                            <option value="pequeno">Pequeño</option>
+                            <option value="mediano">Mediano</option>
+                            <option value="grande">Grande</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cantidad-cartones">Cartones (30 huevos c/u):</label>
+                        <input type="number" id="cantidad-cartones" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="precio-carton">Precio por cartón ($):</label>
+                        <input type="number" id="precio-carton" min="0" step="0.01" required>
+                    </div>
+                    
+                    <button onclick="registrarVenta()">
+                        <i class="fas fa-check-circle"></i> Confirmar Venta
+                    </button>
+                    
+                    <div id="total-venta" class="total-venta"></div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title">
+                        <i class="fas fa-filter"></i> Filtro de Ventas
+                    </h2>
+                    
+                    <div class="filtros">
+                        <div>
+                            <label for="fecha-inicio-ventas">Desde:</label>
+                            <input type="date" id="fecha-inicio-ventas">
+                        </div>
+                        <div>
+                            <label for="fecha-fin-ventas">Hasta:</label>
+                            <input type="date" id="fecha-fin-ventas">
+                        </div>
+                        <button onclick="filtrarVentas()">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        <button onclick="limpiarFiltrosVentas()" class="secondary">
+                            <i class="fas fa-broom"></i> Limpiar
+                        </button>
+                    </div>
+                    
+                    <table id="tabla-ventas">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Tipo</th>
+                                <th>Cartones</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Panel de Historial -->
+            <div class="section" id="historial">
+                <div class="panel">
+                    <h2 class="panel-title">
+                        <i class="fas fa-history"></i> Historial de Producción
+                    </h2>
+                    
+                    <div class="filtros">
+                        <div>
+                            <label for="fecha-inicio-hist">Desde:</label>
+                            <input type="date" id="fecha-inicio-hist">
+                        </div>
+                        <div>
+                            <label for="fecha-fin-hist">Hasta:</label>
+                            <input type="date" id="fecha-fin-hist">
+                        </div>
+                        <div>
+                            <label for="tipo-hist">Tipo:</label>
+                            <select id="tipo-hist">
+                                <option value="todos">Todos</option>
+                                <option value="pequeno">Pequeño</option>
+                                <option value="mediano">Mediano</option>
+                                <option value="grande">Grande</option>
+                                <option value="quebrado">Quebrado</option>
+                            </select>
+                        </div>
+                        <button onclick="filtrarHistorial()">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        <button onclick="limpiarFiltrosHist()" class="secondary">
+                            <i class="fas fa-broom"></i> Limpiar
+                        </button>
+                    </div>
+                    
+                    <table id="tabla-historial">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Datos almacenados
+        let inventario = {
+            pequeno: 0,
+            mediano: 0,
+            grande: 0,
+            quebrado: 0
+        };
+        
+        let produccion = [];
+        let ventas = [];
+        
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+            actualizarStock();
+            renderizarVentas();
+            renderizarHistorial();
+            actualizarTotales();
+            
+            // Configurar fechas máximas
+            const hoy = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                input.max = hoy;
+                if(input.id.includes('fecha-') && !input.id.includes('registro') && !input.id.includes('venta')) {
+                    input.value = hoy;
+                }
+            });
+            
+            // Navegación
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const section = this.getAttribute('data-section');
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(section).classList.add('active');
+                });
+            });
+        });
+        
+        // ===== FUNCIONES DE PRODUCCIÓN =====
+        function registrarProduccion() {
+            const fecha = document.getElementById('fecha-registro').value;
+            const tipo = document.getElementById('tipo-registro').value;
+            const cantidad = parseInt(document.getElementById('cantidad-registro').value);
+            
+            if (!fecha) {
+                mostrarNotificacion("❌ Seleccione una fecha", "error");
+                return;
+            }
+            
+            if (cantidad <= 0 || isNaN(cantidad)) {
+                mostrarNotificacion("❌ Ingrese una cantidad válida", "error");
+                return;
+            }
+            
+            // Registrar producción
+            const registro = {
+                id: Date.now(),
+                fecha,
+                tipo,
+                cantidad
+            };
+            
+            produccion.push(registro);
+            inventario[tipo] += cantidad;
+            
+            guardarDatos();
+            actualizarStock();
+            renderizarHistorial();
+            actualizarTotales();
+            
+            mostrarNotificacion(`✅ Producción registrada: ${cantidad} huevos ${tipo}`);
+            
+            // Limpiar campos
+            document.getElementById('cantidad-registro').value = "";
+        }
+        
+        function eliminarRegistro(id) {
+            const registroIndex = produccion.findIndex(p => p.id === id);
+            if (registroIndex === -1) return;
+            
+            const registro = produccion[registroIndex];
+            inventario[registro.tipo] -= registro.cantidad;
+            produccion.splice(registroIndex, 1);
+            
+            guardarDatos();
+            actualizarStock();
+            renderizarHistorial();
+            actualizarTotales();
+            
+            mostrarNotificacion("🗑️ Registro eliminado");
+        }
+        
+        // ===== FUNCIONES DE VENTAS =====
+        function registrarVenta() {
+            const fecha = document.getElementById('fecha-venta').value;
+            const cliente = document.getElementById('cliente').value;
+            const tipo = document.getElementById('tipo-venta').value;
+            const cartones = parseInt(document.getElementById('cantidad-cartones').value);
+            const precio = parseFloat(document.getElementById('precio-carton').value);
+            const huevosVendidos = cartones * 30;
+            
+            // Validaciones
+            if (!fecha) {
+                mostrarNotificacion("❌ Seleccione una fecha", "error");
+                return;
+            }
+            
+            if (!cliente) {
+                mostrarNotificacion("❌ Ingrese el nombre del cliente", "error");
+                return;
+            }
+            
+            if (huevosVendidos > inventario[tipo]) {
+                mostrarNotificacion(`❌ No hay suficiente stock de huevos ${tipo}. Stock actual: ${inventario[tipo]}`, "error");
+                return;
+            }
+            
+            if (precio <= 0 || isNaN(precio)) {
+                mostrarNotificacion("❌ Ingrese un precio válido", "error");
+                return;
+            }
+            
+            // Registrar venta
+            const venta = {
+                id: Date.now(),
+                fecha,
+                cliente,
+                tipo,
+                cartones,
+                huevos: huevosVendidos,
+                precioUnitario: precio,
+                total: cartones * precio
+            };
+            
+            ventas.push(venta);
+            inventario[tipo] -= huevosVendidos;
+            
+            guardarDatos();
+            actualizarStock();
+            renderizarVentas();
+            actualizarTotales();
+            
+            // Mostrar total
+            document.getElementById('total-venta').innerHTML = 
+                `<i class="fas fa-receipt"></i> Total de la venta: $${venta.total.toFixed(2)}`;
+            
+            // Limpiar campos
+            document.getElementById('fecha-venta').value = "";
+            document.getElementById('cliente').value = "";
+            document.getElementById('cantidad-cartones').value = 1;
+            document.getElementById('precio-carton').value = "";
+            
+            mostrarNotificacion(`💰 Venta registrada: ${cartones} cartones de huevos ${tipo}`);
+        }
+        
+        function cancelarVenta(id) {
+            const ventaIndex = ventas.findIndex(v => v.id === id);
+            if (ventaIndex === -1) return;
+            
+            const venta = ventas[ventaIndex];
+            inventario[venta.tipo] += venta.huevos;
+            ventas.splice(ventaIndex, 1);
+            
+            guardarDatos();
+            actualizarStock();
+            renderizarVentas();
+            actualizarTotales();
+            
+            mostrarNotificacion("❌ Venta cancelada");
+        }
+        
+        // ===== FILTROS =====
+        function filtrarDashboard() {
+            const inicio = document.getElementById('fecha-inicio-dash').value;
+            const fin = document.getElementById('fecha-fin-dash').value;
+            // Aquí podrías implementar lógica para filtrar el dashboard si es necesario
+        }
+        
+        function limpiarFiltrosDash() {
+            document.getElementById('fecha-inicio-dash').value = "";
+            document.getElementById('fecha-fin-dash').value = "";
+            // Aquí podrías implementar lógica para limpiar filtros del dashboard
+        }
+        
+        function filtrarVentas() {
+            const inicio = document.getElementById('fecha-inicio-ventas').value;
+            const fin = document.getElementById('fecha-fin-ventas').value;
+            renderizarVentas(inicio, fin);
+        }
+        
+        function limpiarFiltrosVentas() {
+            document.getElementById('fecha-inicio-ventas').value = "";
+            document.getElementById('fecha-fin-ventas').value = "";
+            renderizarVentas();
+        }
+        
+        function filtrarHistorial() {
+            const inicio = document.getElementById('fecha-inicio-hist').value;
+            const fin = document.getElementById('fecha-fin-hist').value;
+            const tipo = document.getElementById('tipo-hist').value;
+            renderizarHistorial(inicio, fin, tipo);
+        }
+        
+        function limpiarFiltrosHist() {
+            document.getElementById('fecha-inicio-hist').value = "";
+            document.getElementById('fecha-fin-hist').value = "";
+            document.getElementById('tipo-hist').value = "todos";
+            renderizarHistorial();
+        }
+        
+        // ===== RENDERIZADO =====
+        function actualizarStock() {
+            document.getElementById('stock-pequeno').textContent = inventario.pequeno;
+            document.getElementById('stock-mediano').textContent = inventario.mediano;
+            document.getElementById('stock-grande').textContent = inventario.grande;
+            document.getElementById('stock-quebrados').textContent = inventario.quebrado;
+        }
+        
+        function renderizarVentas(fechaInicio, fechaFin) {
+            const tbody = document.querySelector('#tabla-ventas tbody');
+            tbody.innerHTML = '';
+            
+            let filtered = ventas;
+            
+            if (fechaInicio || fechaFin) {
+                filtered = ventas.filter(item => {
+                    const fechaItem = new Date(item.fecha);
+                    const inicio = fechaInicio ? new Date(fechaInicio) : null;
+                    const fin = fechaFin ? new Date(fechaFin) : null;
+                    
+                    return (
+                        (!inicio || fechaItem >= inicio) && 
+                        (!fin || fechaItem <= fin)
+                    );
+                });
+            }
+            
+            filtered.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.fecha}</td>
+                    <td>${item.cliente}</td>
+                    <td>${item.tipo.toUpperCase()}</td>
+                    <td>${item.cartones}</td>
+                    <td>$${item.total.toFixed(2)}</td>
+                    <td>
+                        <button onclick="cancelarVenta(${item.id})" class="danger">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function renderizarHistorial(fechaInicio, fechaFin, tipo = "todos") {
+            const tbody = document.querySelector('#tabla-historial tbody');
+            tbody.innerHTML = '';
+            
+            let filtered = produccion;
+            
+            if (fechaInicio || fechaFin) {
+                filtered = produccion.filter(item => {
+                    const fechaItem = new Date(item.fecha);
+                    const inicio = fechaInicio ? new Date(fechaInicio) : null;
+                    const fin = fechaFin ? new Date(fechaFin) : null;
+                    
+                    return (
+                        (!inicio || fechaItem >= inicio) && 
+                        (!fin || fechaItem <= fin)
+                    );
+                });
+            }
+            
+            if (tipo !== "todos") {
+                filtered = filtered.filter(item => item.tipo === tipo);
+            }
+            
+            filtered.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.fecha}</td>
+                    <td>${item.tipo.toUpperCase()}</td>
+                    <td>${item.cantidad}</td>
+                    <td>
+                        <button onclick="eliminarRegistro(${item.id})" class="danger">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function actualizarTotales() {
+            // Puedes implementar aquí lógica para actualizar totales generales si es necesario
+        }
+        
+        // ===== PERSISTENCIA =====
+        function guardarDatos() {
+            localStorage.setItem('inventarioHuevos', JSON.stringify(inventario));
+            localStorage.setItem('produccionHuevos', JSON.stringify(produccion));
+            localStorage.setItem('ventasHuevos', JSON.stringify(ventas));
+        }
+        
+        function cargarDatos() {
+            const inv = localStorage.getItem('inventarioHuevos');
+            const prod = localStorage.getItem('produccionHuevos');
+            const vent = localStorage.getItem('ventasHuevos');
+            
+            if (inv) inventario = JSON.parse(inv);
+            if (prod) produccion = JSON.parse(prod);
+            if (vent) ventas = JSON.parse(vent);
+        }
+        
+        // ===== NOTIFICACIONES =====
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notif = document.getElementById('notification');
+            notif.innerHTML = `<i class="fas fa-${tipo === "success" ? "check" : "exclamation"}"></i> ${mensaje}`;
+            notif.className = `notification ${tipo === "error" ? "error" : ""}`;
+            notif.style.opacity = 1;
+            
+            setTimeout(() => {
+                notif.style.opacity = 0;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
